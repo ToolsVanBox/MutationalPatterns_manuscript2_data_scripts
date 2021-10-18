@@ -1,4 +1,4 @@
-# MutationalPatterns2: The one stop shop for the analysis of mutational processes
+# MutationalPatterns: The one stop shop for the analysis of mutational processes
 This repository contains the scripts that were written for the paper: MutationalPatterns: The one stop shop for the analysis of mutational processes
 
 It also contains the vcf files of the knockout data that were used.

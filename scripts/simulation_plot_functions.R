@@ -7,21 +7,6 @@ plot_simulation = function(out_dir){
     # Read cost files
     cost_tb = read_tsv("costs/cost_mutpatterns.txt")
     
-    if (file.exists("costs/cost_deconstructsigs.txt")){
-        cost_deconst_tb = read_tsv("costs/cost_deconstructsigs.txt")
-        cost_tb = rbind(cost_tb, cost_deconst_tb)
-    }
-    
-    if (file.exists("costs/cost_decomptumor2sigs.txt")){
-        cost_decomp_tb = read_tsv("costs/cost_decomptumor2sigs.txt")
-        cost_tb = rbind(cost_tb, cost_decomp_tb)
-    }
-    
-    if (file.exists("costs/cost_sigprofiler.txt")){
-        cost_sigprofiler_tb = read_tsv("costs/cost_sigprofiler.txt")
-        cost_tb = rbind(cost_tb, cost_sigprofiler_tb)
-    }
-    
     # Correct format
     cost_tb = cost_tb %>% 
         dplyr::mutate(matrix_name = factor(matrix_name, levels = unique(matrix_name)),
@@ -76,10 +61,6 @@ plot_precision_recall = function(cost_tb){
     cost_tb_strict = dplyr::filter(cost_tb, method == "strict")
     cost_tb_regular = dplyr::filter(cost_tb, method == "regular")
     cost_tb_regular10 = dplyr::filter(cost_tb, method == "regular_10+")
-    cost_tb_decon = dplyr::filter(cost_tb, method == "deconstructSigs")
-    cost_tb_decomp = dplyr::filter(cost_tb, method == "decomptumor2sigs")
-    cost_tb_sigprofiler = dplyr::filter(cost_tb, method == "SigProfiler")
-    
 
     #Modify x values a little, to prevent duplicates when plotting for strict
     nr_per_group = cost_tb_strict$cutoff %>%
@@ -92,48 +73,15 @@ plot_precision_recall = function(cost_tb){
         dplyr::ungroup()
     
     #Bind data back together
-    cost_tb = rbind(cost_tb_strict_mod, cost_tb_regular, cost_tb_regular10, cost_tb_sigprofiler)
+    cost_tb = rbind(cost_tb_strict_mod, cost_tb_regular, cost_tb_regular10)
     
     #determine aucs
     label_tb = create_label_tb(cost_tb_strict, "strict", 0.1)
-    label_tb2 = create_label_tb(cost_tb_sigprofiler, "SigProfiler", 0.7)
-    label_tb = rbind(label_tb, label_tb2)
-    
+
     # Set size scale
-    size_scale = scale_size_manual(breaks = c("strict", "regular", "regular_10+", "SigProfiler"), 
+    size_scale = scale_size_manual(breaks = c("strict", "regular", "regular_10+"), 
                                    values = c(1.5, 3, 3, 1.5), 
                                    guide = FALSE)
-    
-    if (nrow(cost_tb_decon)){
-        
-        label_tb2 = create_label_tb(cost_tb_decon, "deconstructSigs", 0.3)
-        label_tb = rbind(label_tb, label_tb2)
-        
-        cost_tb = rbind(cost_tb, cost_tb_decon)
-        size_scale = scale_size_manual(breaks = c("strict", "regular", "regular_10+", "deconstructSigs", "SigProfiler"), 
-                                       values = c(1.5, 4, 4, 1.5, 1.5), 
-                                       guide = FALSE)
-        
-    }
-    
-    if (nrow(cost_tb_decomp)){
-        
-        label_tb2 = create_label_tb(cost_tb_decomp, "decomptumor2sigs", 0.5)
-        label_tb = rbind(label_tb, label_tb2)
-        
-        cost_tb = rbind(cost_tb, cost_tb_decomp)
-        size_scale = scale_size_manual(breaks = c("strict", "regular", "regular_10+", "decomptumor2sigs", "SigProfiler"), 
-                                       values = c(1.5, 4, 4, 1.5, 1.5), 
-                                       guide = FALSE)
-    }
-    
-    
-    if (nrow(cost_tb_decomp) & nrow(cost_tb_decon)){
-        size_scale = scale_size_manual(breaks = c("strict", "regular", "regular_10+", 
-                                                  "deconstructSigs", "decomptumor2sigs", "SigProfiler"), 
-                                       values = c(1.5, 4, 4, 1.5, 1.5, 1.5), 
-                                       guide = FALSE)
-    }
     
     #Create plot
     fig = ggplot(cost_tb, aes(x = precision, y = recall, colour = matrix_name, shape = method)) +
